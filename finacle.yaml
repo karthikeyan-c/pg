@@ -1,0 +1,378 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: db-svc
+  namespace: v1110pg
+spec:
+  ports:
+  - port: 5432
+    protocol: TCP
+    targetPort: 5432
+  sessionAffinity: None
+  type: ClusterIP
+  selector:
+    app: postgres
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: finlistval-ac-env
+  labels:
+    name: finlistval-ac-env
+  namespace: "v1110pg"
+data:
+  FIN_BANK_ID: "SG"
+  FINACLE_INSTALL_ID: "AC_INSTK8"
+  FC_INSTALL_PATH: "/usr/local/finacle/be/"
+  CLOUD_ENV: ""
+  DB_HOME: "/usr/lib/oracle/12.1/client64/bin"
+#  DB_HOME: "/usr/local/finacle/be/postgres/bin"
+  TNS_ADMIN: "/usr/local/finacle/be/ORACLNT"
+#  TNS_ADMIN: "/usr/local/finacle/be/postgres"
+  DB_SRVR_IP: "db-svc"
+  DB_SRVR_PORT: "5432"
+  DB_SRVR_NAME: "nativepgdb"
+  DB_SVC_NAME: "nativepgdb"
+  MODE: "FCBRANCH"
+  MARIA_SSL_REQUIRED: "N"
+  LISERVER_SSL_REQUIRED: "N"
+  JLIMO_SSL_REQUIRED: "N"
+  LISRVR_LOG_EVENT: "Y"
+  MARIA_MAX_APPS: "10"
+  MARIA_MAX_CLIENTS: "150"
+  RESOURCE_LOAD: "heavy"
+  LISERVER_MAX_NUM_INST: "5"
+  LISERVER_START_NUM_INST: "5"
+  LISERVER_LISTEN_Q_SIZE: "50"
+  LISERVER_CONNECTION_TIMEOUT: "-1"
+  INSTRUMENT_LOG_LEVEL: "DETAILED"
+  INSTRUMENT_LOG_ASYNCIO: "true"
+  INSTRUMENT_LOG_FILESIZE_BYTES: "0"
+  INSTRUMENT_LOG_INTERVAL_MINS: "1"
+  DEBUG_LOG_LEVEL: "ERROR"
+  DEBUG_LOG_ASYNCIO: "true"
+  DEBUG_LOG_FILESIZE_BYTES: "0"
+  DEBUG_LOG_INTERVAL_MINS: "5"
+  DEBUG_LOG_USERS: "ALL"
+  SSO_SERVICE_NAME: "Core_INSTK8"
+  PSQL_ROOT: "/usr/local/finacle/be/postgres/"
+  DATABASE_TYPE: "G"
+  FINARM_EVENT_LOGGING: "N"
+  DT_CHK_AT_PT_LVL: "1"
+  #DO_NOT_USE_LVST: "N"
+  AR_LCL_RF: "180"
+  NAG_SKIP_UPD: "YES"
+  SD_ENTITY_NOT_PRESENT: "Y"
+  SKIP_CLIENT_INFO_LOGGING: "Y"
+  QUICK_VERIFY: "Y"
+  NAGTBL_UPD_REQD: "N"
+  NAPI_OpenTUAcct_DF_QUICK_VERIFY: "Y"
+  SRV_OpenSBAcct_DF_QUICK_VERIFY: "Y"
+  DISABLE_SBCA_OPEN_VERIFY: "N"
+  FINACLE_LOG4FIN_ENABLED: "Y"
+  DISABLE_TD_CLOSURE_RPT: "Y"
+  FBPF_CLOUD_BATCH: "Y"
+  ENVIRONMENT_TYPE: "DEVELOPMENT"
+  TLS_MODE: "NON-SSL"
+  FNLST_SVC_NAME : "finlistval-ac-svc"
+  RESOURCE_LOAD: "heavy"
+  DB_TLS_MODE: "NON-SSL"
+  DB_TLS_DN: " "
+  CF_SYS_TYPE: "N"
+  FIJCA_RECV_TIMEOUT: "50"
+  LOCALE_CODE: "US"
+  ROF_MODULES: "ACAN|WMS|TRSY|TFIN|LIMCOLL|GENERAL"
+  FBPF_ENTERPRISE_MODULE: "LIABILITY"
+  BATCH_LOGOUT_ENV: "N"
+  DISTRIBUTED_PREP_FLG: "Y"
+  TIME_ZONE: "Asia/Kolkata"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: finbranch-ui-ac-env
+  labels:
+    name: finbranch-ui-ac-env
+  namespace: v1110pg
+data:
+  SrvcRoutines_PRIMARY_IP: "localhost"
+  SrvcRoutines_ALTERNATE_IP: "localhost"
+  SrvcRoutines_PORT_NUM: "3198"
+  SSO_URL: "http://kc.ad.infosys.com:9090/fininfra/SSOServlet"
+  SSO_AUTH_URL: "http://kc.ad.infosys.com:9090/fininfra/SSOServlet"
+  CORE_Server: "CASA_Core_INSTK8"
+  FINBRANCH_TYPE: "AC"
+  SSO_DOMAIN_NAME: "ad.infosys.com"
+  FWICONTROLLER: "https://masteroshift.ad.infosys.com:9010/fwi-web/WebRequestController"
+  ALLOW_FROM_HOST: "http://kc.ad.infosys.com:9090"
+  FE_INSTALL_DIR: "/usr/local/finacle/fe"
+  CONNPOOL_LOGGER_LEVEL: "ALL"
+  CORELOG_LOGGER_LEVEL: "TRACE"
+  UXLOG_LOGGER_LEVEL: "ALL"
+  SECUFILTER_LOGGER_LEVEL: "ALL"
+  ROOT_LOGGER_LEVEL: "NONE"
+  finMinPoolInstances: "1"
+  finMaxPoolInstances: "10"
+  SESSION_IN_REDIS: "N"
+  UX_ENABLE_TOKEN_VALIDATION: "Y"
+  DISABLE_CLNT_VALIDATION: "N"
+  FIN_OBJECT_STORE: ""
+  ENVIRONMENT_TYPE: "DEVELOPMENT"
+  TLS_MODE: "NON-SSL"
+  HTTP_TLS_MODE: "TWO-WAY"
+  CLOUD_ENV: ""
+  RESOURCE_LOAD: "normal"
+  DB_TLS_MODE: "NON-SSL"
+  LIMO_PROTOCOL_VERSION: "A1"
+  HARDCODED_BASE_HREF: ""
+  FINACLE_OBJ_STORE_TYPE: ""
+  FINACLE_OBJ_STORE_URL: ""
+  FINACLE_OBJ_STORE_REGION: ""
+  FINACLE_OBJ_STORE_BUCKET: ""
+  FINRPT_OBJ_STORE_BUCKET: ""
+  TIME_ZONE: "Asia/Kolkata"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fblstac  
+  namespace: v1110pg
+spec:
+  selector:
+    matchLabels:
+      app: fblstac 
+  replicas: 1
+  template:
+    metadata:
+      labels:
+       app: fblstac 
+    spec:
+    spec:
+      serviceAccountName: finadm
+      securityContext:
+         runAsUser: 10001
+      containers:
+      - name: fnlstac 
+        image: evdtr.ad.infosys.com/testing/fincore_mod_ac_finlistval:11.10.00-nightly-ubi8-minimal-pg-untested
+        #image: docker-registry-default.router.default.svc.cluster.local/finpgns/fincore_mod_ac_finlistval:11.10.00-nightly-ubi8-minimal-pg-untested
+        imagePullPolicy: IfNotPresent
+        envFrom:
+        - configMapRef:
+            name: finlistval-ac-env
+        ports:
+        - containerPort: 3198
+      - name: finbranch-ui-ac
+        image: evdtr.ad.infosys.com/testing/fincore_mod_ac_finbranch:11.10.00-nightly-ubi8-minimal-pg-untested
+        imagePullPolicy: "IfNotPresent"
+        securityContext:
+          runAsUser: 10001
+          runAsGroup: 11001
+        envFrom:
+        - configMapRef:
+            name: finbranch-ui-ac-env
+        ports:
+        - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: finbranch-ac-svc
+  namespace: v1110pg
+  labels:
+    app: finbranch-ui-ac
+spec: 
+  type: LoadBalancer
+  ports:
+  - name: http
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector: 
+    app: fblstac 
+  sessionAffinity: ClientIP
+
+---          
+apiVersion: v1
+kind: Service
+metadata:    
+  name: fb-finlistval-http-ac-svc
+  namespace: v1110pg
+  labels:
+    app: fblstac
+spec:        
+  ports:     
+  - protocol: TCP
+    port: 3188 
+    targetPort: 3188 
+  selector:
+    app: fblstac
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fininfra-env
+  labels:
+    name: fininfra-env
+  namespace: v1110pg
+data:
+  FINACLE_INSTALL_HOME: "/usr/local/finacle/fe"
+  DB_DRIVER_CLASS_NAME: "org.postgresql.Driver"
+  DB_USER_NAME: "finfadm"
+  DB_USER_PASSWORD: "finfadm"
+  DB_URL: "jdbc:postgresql://db-svc:5432/nativepgdb"
+  DB_URL_CRM: jdbc:postgresql://db-svc:5432/nativepgdb
+  DB_USER_NAME_CRM: finfadm
+  DB_USER_PASSWORD_CRM: finfadm
+  FINACLE_INSTALL_ID: "INSTK8"
+  FE_DB_DRIVER_PATH: "/usr/local/finacle/fe/common/lib/CMN_TP_LIB/ojdbc8.jar"
+  FINACLE_UI_DOMAIN: "ad.infosys.com"
+  DATABASE_TYPE: "NATIVEPG"
+  FINACLE_DEPLOYMENT_ARCH: "DOCKER"
+  IS_SSL_REQ: "N"
+  SSO_URL: "http://kc.ad.infosys.com:9090/fininfra/SSOServlet"
+  CONFIG_PRIMARY_IP: "fcse-svc"
+  CS_PORT_NUM: "10005"
+#  SESSION_IN_REDIS: "YES"
+  svsprotocol: "http"
+  ENVIRONMENT_TYPE: "DEVELOPMENT"
+  TLS_MODE: "NON-SSL"
+  HTTP_TLS_MODE: "TWO-WAY"
+  RESOURCE_LOAD: "normal"
+  DB_TLS_MODE: "NON-SSL"
+  CASA_Core_INSTK8_ALTERNATE_URL: "http://finbranch-ac:8080/finbranch-ac/index.jsp"
+  LOANS_Core_INSTK8_ALTERNATE_URL: "http://finbranch-la:8080/finbranch-la/index.jsp"
+  Core_INSTK8_ALTERNATE_URL: "http://finbranch-rof:8080/finbranch-rof/index.jsp"
+  LMS_Core_INSTK8_ALTERNATE_URL: "http://finbranch-lm-svc:8080/finbranch-lm/index.jsp"
+  PAYMENTS_Core_INSTK8_ALTERNATE_URL: "http://finbranch-py-svc:8080/finbranch-py/index.jsp"
+  VA_Core_INSTK8_ALTERNATE_URL: "http://finbranch-va-svc:8080/finbranch-va/index.jsp"
+  TIME_ZONE: "Asia/Kolkata"
+  LS_START_NUM_INST: "1"
+  LS_MAX_NUM_INST: "5"
+  CS_START_NUM_INST: "5"
+  CS_MAX_NUM_INST: "15"
+  START_INST_SVC2: "1"
+  MAX_INST_SVC2: "5"
+  CLOUD_ENV: ""
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fininfra
+  namespace: v1110pg
+spec:
+  selector:
+    matchLabels:
+      app: fininfra
+  replicas: 1
+  template:
+    metadata: 
+      labels:
+       app: fininfra
+    spec:
+      serviceAccountName: finadm
+      securityContext:
+         runAsUser: 10001
+      containers:
+      - name: fininfra
+        image: evdtr.ad.infosys.com/testing/fininfra:11.10.00-nightly-ubi8-minimal-pg-untested
+        imagePullPolicy: IfNotPresent
+        envFrom:
+        - configMapRef:
+            name: fininfra-env
+        ports:
+        - containerPort: 8080
+        - containerPort: 8443
+        - containerPort: 10001
+        - containerPort: 10002
+        - containerPort: 10005
+        - containerPort: 10006
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fininfra-svc
+  namespace: v1110pg
+  labels:
+    app: fininfra
+spec:
+  type: LoadBalancer
+  ports:
+  - name: http
+    port: 9090
+    protocol: TCP
+    targetPort: 8080
+    nodePort: 30243
+  - name: https
+    port: 8443
+    protocol: TCP
+    targetPort: 8443
+    nodePort: 30246
+  selector:
+    app: fininfra
+  sessionAffinity: ClientIP
+        
+---     
+apiVersion: v1
+kind: Service
+metadata:
+  name: fcse-svc
+  namespace: v1110pg
+  labels: 
+    app: fininfra
+spec:   
+  ports:
+  - protocol: TCP
+    port: 10005
+    targetPort: 10005
+  selector:            
+    app: fininfra      
+  sessionAffinity: ClientIP
+                           
+---                        
+apiVersion: v1             
+kind: Service
+metadata:
+  name: ssojlimo-svc
+  namespace: v1110pg
+  labels:
+    app: fininfra
+spec:
+  ports:
+  - protocol: TCP
+    port: 10002
+    targetPort: 10002
+  selector:
+    app: fininfra
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: license-svc
+  namespace: v1110pg
+  labels:
+    app: fininfra
+spec:
+  ports:
+  - protocol: TCP
+    port: 10006
+    targetPort: 10006
+  selector:
+    app: fininfra
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ssofijlimo-svc
+  namespace: v1110pg
+  labels:
+    app: fininfra
+spec:
+  ports:
+  - protocol: TCP
+    port: 10001
+    targetPort: 10001
+  selector:
+    app: fininfra
